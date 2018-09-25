@@ -1,0 +1,36 @@
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: make temp file
+    tempfile:
+      state: file
+    register: tmp
+
+  - name: Write private key
+    copy:
+      content: '{{ _ssh_secret.data.priv_key | b64decode }}'
+      dest: '{{ tmp.path }}'
+    vars:
+      _ssh_secret: "{{ lookup('k8s', kind='Secret', namespace=ssh_secret_ref.namespace, resource_name=ssh_secret_ref.name) }}"
+    no_log: true
+
+  - import_role:
+      name: "my-demo-app"
+    when: sentinel is not defined
+
+  - name: "add host"
+    add_host:
+      hostname: "{{ nginx_hostname }}"
+      ansible_ssh_private_key_file: '{{ tmp.path }}'
+      _nginx_proxy_pass_url: "{{ cluster_base_url }}:{{ _demo_app_service.result.spec.ports.0.nodePort}}"
+
+  - debug:
+      msg: "sentinel value '{{ sentinel }}' detected, this is a finalizer"
+    when: sentinel is defined
+
+- hosts: "{{ nginx_hostname }}"
+  gather_facts: no
+  tasks:
+  - import_role:
+      name: "my-demo-app-nginx"
+

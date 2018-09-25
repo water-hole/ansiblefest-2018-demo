@@ -1,0 +1,8 @@
+server {
+        listen  {{ nginx_listen_port }};
+        server_name {{ nginx_server_name }};
+
+        location / {
+                proxy_pass {{ _nginx_proxy_pass_url }};
+        }
+}

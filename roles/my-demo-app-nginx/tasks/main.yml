@@ -1,0 +1,26 @@
+---
+# tasks file for my-demo-app-nginx
+- name: "install {{ meta.namespace }}-{{ meta.name }}.conf"
+  template:
+    src: "server.conf.j2"
+    dest: "/usr/local/etc/nginx/servers/{{meta.namespace}}-{{ meta.name }}.conf"
+    force: yes
+    mode: 0644
+
+
+- name: "make sure nginx is running"
+  command: /usr/local/bin/nginx
+  ignore_errors: True
+
+- block:
+  - name: "reload ngxinx"
+    command: /usr/local/bin/nginx -s reload
+    register: result
+  rescue:
+    - name: Clean up failed nginx configuration
+      file:
+        path: /usr/local/etc/nginx/servers/{{ meta.namespace }}-{{ meta.name }}.conf
+        state: absent
+    - name: Report error
+      fail:
+        msg: "nginx configuration was invalid: {{ result.stderr  }}"

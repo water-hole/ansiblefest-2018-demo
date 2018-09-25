@@ -1,0 +1,42 @@
+---
+# tasks file for my-demo-app
+- name: start demo app pod
+  k8s:
+    definition:
+      kind: Deployment
+      apiVersion: apps/v1
+      metadata:
+        name: '{{ meta.name }}-demo-app'
+        namespace: '{{ meta.namespace }}'
+      spec:
+        selector:
+          matchLabels:
+            apps: test
+        template:
+          metadata:
+            labels:
+              apps: test
+          spec:
+            containers:
+            - name: demo-app
+              image: "quay.io/shawn_hurley/demo-web-app"
+              ports:
+              - containerPort: 3000
+
+- name: create demo app service
+  k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: '{{ meta.name }}-demo-app'
+        namespace: '{{ meta.namespace }}'
+        labels:
+          apps: test
+      spec:
+        type: NodePort
+        ports:
+          - port: 3000
+        selector:
+          apps: test
+  register: _demo_app_service
