@@ -1,0 +1,7 @@
+{% if nginx_route_prefix is not defined %}
+location / {
+{% else %}
+location /{{ nginx_route_prefix }} {
+{% endif %}
+        proxy_pass {{ _nginx_proxy_pass_url }}/;
+}

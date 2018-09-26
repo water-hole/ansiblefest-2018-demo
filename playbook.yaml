@@ -12,25 +12,34 @@
       dest: '{{ tmp.path }}'
     vars:
       _ssh_secret: "{{ lookup('k8s', kind='Secret', namespace=ssh_secret_ref.namespace, resource_name=ssh_secret_ref.name) }}"
-    no_log: true
+      no_log: true
 
   - import_role:
       name: "my-demo-app"
-    when: sentinel is not defined
+    when: _deleted is not defined
 
   - name: "add host"
     add_host:
       hostname: "{{ nginx_hostname }}"
+      ansible_user: "{{ nginx_user }}"
       ansible_ssh_private_key_file: '{{ tmp.path }}'
       _nginx_proxy_pass_url: "{{ cluster_base_url }}:{{ _demo_app_service.result.spec.ports.0.nodePort}}"
+    when: _deleted is not defined
 
-  - debug:
-      msg: "sentinel value '{{ sentinel }}' detected, this is a finalizer"
-    when: sentinel is defined
+  - name: "add host"
+    add_host:
+      hostname: "{{ nginx_hostname }}"
+      ansible_user: "{{ nginx_user }}"
+      ansible_ssh_private_key_file: '{{ tmp.path }}'
+    when: _deleted is defined and _deleted
 
 - hosts: "{{ nginx_hostname }}"
   gather_facts: no
   tasks:
   - import_role:
       name: "my-demo-app-nginx"
-
+    when: _deleted is not defined
+  - import_role:
+      name: "my-demo-app-nginx"
+      tasks_from: "delete_location"
+    when: _deleted is defined and _deleted

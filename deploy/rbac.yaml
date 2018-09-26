@@ -1,10 +1,10 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: ansible-operator
+  name: demoapp-operator
 rules:
 - apiGroups:
-  - app.example.com
+  - example.com
   resources:
   - "*"
   verbs:
@@ -43,5 +43,5 @@ subjects:
   namespace: default
 roleRef:
   kind: ClusterRole
-  name: ansible-operator
+  name: demoapp-operator
   apiGroup: rbac.authorization.k8s.io

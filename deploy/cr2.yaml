@@ -1,12 +1,13 @@
 apiVersion: "example.com/v1alpha1"
 kind: "DemoApp"
 metadata:
-  name: "example"
+  name: "example-2"
 spec:
   clusterBaseURL: http://192.168.99.100
   nginxHostname: 192.168.99.1
   nginxUser: shawnhurley
-  nginxRoutePrefix: v1
+  nginxRoutePrefix: v2
+  appVersion: v2
   sshSecretRef:
     name: demo-ssh-priv-key
     namespace: default

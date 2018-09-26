@@ -11,15 +11,15 @@
       spec:
         selector:
           matchLabels:
-            apps: test
+            apps: 'demoapp-{{ meta.namespace }}-{{ meta.name }}'
         template:
           metadata:
             labels:
-              apps: test
+              apps: 'demoapp-{{ meta.namespace }}-{{ meta.name }}'
           spec:
             containers:
             - name: demo-app
-              image: "quay.io/shawn_hurley/demo-web-app"
+              image: "quay.io/shawn_hurley/demo-web-app:{{ app_version }}"
               ports:
               - containerPort: 3000
 
@@ -32,11 +32,11 @@
         name: '{{ meta.name }}-demo-app'
         namespace: '{{ meta.namespace }}'
         labels:
-          apps: test
+          apps: 'demoapp-{{ meta.namespace }}-{{ meta.name }}'
       spec:
         type: NodePort
         ports:
           - port: 3000
         selector:
-          apps: test
+          apps: 'demoapp-{{ meta.namespace }}-{{ meta.name }}'
   register: _demo_app_service

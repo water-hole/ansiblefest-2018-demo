@@ -2,6 +2,4 @@
 # defaults file for my-demo-app-nginx
 
 # Defaults for nginx server block
-nginx_listen_port: 8088
-nginx_server_name: localhost
 # _nginx_proxy_pass_url: http://192.168.99.100:30080

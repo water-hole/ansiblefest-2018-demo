@@ -1,0 +1,7 @@
+- name: Clean up nginx configuration
+  file:
+    path: /usr/local/etc/nginx/servers/{{meta.namespace}}-{{ meta.name }}-location.conf
+    state: absent
+
+- name: "reload ngxinx"
+  command: /usr/local/bin/nginx -s reload
