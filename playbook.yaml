@@ -6,40 +6,48 @@
       state: file
     register: tmp
 
+  - name: ensure tempfile persists across plays
+    set_fact:
+      private_key_path: '{{ tmp.path }}'
+
   - name: Write private key
     copy:
       content: '{{ _ssh_secret.data.priv_key | b64decode }}'
-      dest: '{{ tmp.path }}'
+      dest: '{{ private_key_path }}'
     vars:
       _ssh_secret: "{{ lookup('k8s', kind='Secret', namespace=ssh_secret_ref.namespace, resource_name=ssh_secret_ref.name) }}"
-      no_log: true
+    no_log: true
 
   - import_role:
-      name: "my-demo-app"
+      name: my-demo-app
     when: _deleted is not defined
 
-  - name: "add host"
+  - name: Add nginx host
     add_host:
-      hostname: "{{ nginx_hostname }}"
-      ansible_user: "{{ nginx_user }}"
-      ansible_ssh_private_key_file: '{{ tmp.path }}'
-      _nginx_proxy_pass_url: "{{ cluster_base_url }}:{{ _demo_app_service.result.spec.ports.0.nodePort}}"
-    when: _deleted is not defined
+      hostname: '{{ nginx_hostname }}'
+      ansible_user: '{{ nginx_user }}'
+      ansible_ssh_private_key_file: '{{ private_key_path }}'
+      _nginx_proxy_pass_url: '{{ cluster_base_url }}:{{ node_port }}'
+    vars:
+      # if we're in a deleting state, nodePort won't be defined, so we default it to 0
+      node_port: '{{ _demo_app_service.result.spec.ports.0.nodePort if _deleted is not defined else 0 }}'
 
-  - name: "add host"
-    add_host:
-      hostname: "{{ nginx_hostname }}"
-      ansible_user: "{{ nginx_user }}"
-      ansible_ssh_private_key_file: '{{ tmp.path }}'
-    when: _deleted is defined and _deleted
-
-- hosts: "{{ nginx_hostname }}"
+- hosts: '{{ nginx_hostname }}'
   gather_facts: no
   tasks:
   - import_role:
-      name: "my-demo-app-nginx"
+      name: my-demo-app-nginx
     when: _deleted is not defined
+
   - import_role:
-      name: "my-demo-app-nginx"
-      tasks_from: "delete_location"
+      name: my-demo-app-nginx
+      tasks_from: delete_location
     when: _deleted is defined and _deleted
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Clean up private key file
+      file:
+        path: '{{ private_key_path }}'
+        state: absent
