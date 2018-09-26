@@ -1,24 +1,24 @@
 ---
-- name: "install {{ meta.namespace }}-{{ meta.name }}-location.conf"
+- name: Create nginx configuration file
   template:
-    src: "server-location.conf.j2"
-    dest: "/usr/local/etc/nginx/servers/{{meta.namespace}}-{{ meta.name }}-location.conf"
+    src: server-location.conf.j2
+    dest: "/usr/local/etc/nginx/servers/{{ meta.namespace }}-{{ meta.name }}-location.conf"
     force: yes
     mode: 0644
 
-- name: "make sure nginx is running"
+- name: make sure nginx is running
   command: /usr/local/bin/nginx
   ignore_errors: True
 
 - block:
-  - name: "reload ngxinx"
+  - name: reload nginx
     command: /usr/local/bin/nginx -s reload
     register: result
   rescue:
     - name: Clean up failed nginx configuration
       file:
-        path: /usr/local/etc/nginx/servers/{{meta.namespace}}-{{ meta.name }}-location.conf
+        path: "/usr/local/etc/nginx/servers/{{ meta.namespace }}-{{ meta.name }}-location.conf"
         state: absent
     - name: Report error
       fail:
-        msg: "nginx configuration was invalid: {{ result.stderr  }}"
+        msg: "nginx configuration was invalid: [{{ result.stderr  }}]"
