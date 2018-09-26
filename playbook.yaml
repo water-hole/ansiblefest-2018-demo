@@ -16,7 +16,7 @@
       dest: '{{ private_key_path }}'
     vars:
       _ssh_secret: "{{ lookup('k8s', kind='Secret', namespace=ssh_secret_ref.namespace, resource_name=ssh_secret_ref.name) }}"
-      no_log: true
+    no_log: true
 
   - import_role:
       name: "my-demo-app"
